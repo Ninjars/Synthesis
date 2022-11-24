@@ -40,8 +40,17 @@ class Instrument(
             a.zip(b) { c, d -> c + d }
         }.mapIndexed { index, value ->
             val t = index / (sampleCount - 1).toDouble()
-            value / (oscillators.size).toDouble() * exp(-t * fade)
+            val attackPopFactor =
+                lerpClamped(0.0, 1.0, (index / AttackPopSamples.toDouble()).coerceIn(0.0, 1.0))
+            val decayPopStart = sampleCount - 1 - DecayPopSamples
+            val decayPopFactor =
+                lerpClamped(1.0, 0.0, ((index - decayPopStart) / DecayPopSamples.toDouble()))
+            value / (oscillators.size).toDouble() * exp(-t * fade) * attackPopFactor * decayPopFactor
         }.toDoubleArray()
+    }
+
+    private fun lerpClamped(a: Double, b: Double, factor: Double): Double {
+        return (a * (1.0 - factor).coerceIn(0.0, 1.0) + b * factor.coerceIn(0.0, 1.0))
     }
 
     private fun getSineWave(duration: Float, frequency: Double): DoubleArray {
@@ -64,5 +73,10 @@ class Instrument(
                 sin(cyclePosition + sin(cyclePosition * 4) * exp(-time * 4)) * exp(-time * 7)
         }
         return sample
+    }
+
+    private companion object {
+        const val AttackPopSamples = 100
+        const val DecayPopSamples = 800
     }
 }
