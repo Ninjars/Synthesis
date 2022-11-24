@@ -148,6 +148,7 @@ class AudioEngine(
             Timber.e("synth with id $synthId not registered")
             return
         }
+        engine.stop()
         synthEvents[synthId]?.forEach { it.delete() }
 
         synthEvents[synthId] = events.map {
@@ -158,6 +159,7 @@ class AudioEngine(
                 synth,
             )
         }.toMutableList()
+        engine.start()
     }
 
     fun dispose() {

@@ -5,19 +5,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jez.synthesis.Consumer
 import jez.synthesis.audio.AudioEngine
-import jez.synthesis.audio.SynthEventData
 import jez.synthesis.audio.SynthInstrumentData
 import jez.synthesis.audio.SynthInstrumentData.OscillatorProps.WaveForm
-import jez.synthesis.audio.TimeSignature
+import jez.synthesis.audiotrack.AudioGenerator
+import jez.synthesis.audiotrack.Instrument
+import jez.synthesis.audiotrack.Note
+import jez.synthesis.audiotrack.OscillatorParams
+import jez.synthesis.audiotrack.OscillatorParams.Waveform
+import jez.synthesis.audiotrack.OscillatorParams.WaveformParams
 import jez.synthesis.features.createinstrument.CreateInstrumentVM.Event
 import jez.synthesis.features.createinstrument.CreateInstrumentViewState.InstrumentAttribute
 import jez.synthesis.toViewState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import nl.igorski.mwengine.core.Pitch
 import java.util.*
 
-class CreateInstrumentVM(private val audioEngine: AudioEngine) : Consumer<Event>, ViewModel() {
+class CreateInstrumentVM : Consumer<Event>, ViewModel() {
     private val stateFlow = MutableStateFlow(
         State(
             data = SynthInstrumentData(
@@ -31,15 +34,18 @@ class CreateInstrumentVM(private val audioEngine: AudioEngine) : Consumer<Event>
     val viewState: StateFlow<CreateInstrumentViewState> =
         stateFlow.toViewState(viewModelScope) { CreateInstrumentStateToViewState(it) }
 
-    init {
-//        audioEngine.reset()
-        audioEngine.setTimeSignature(
-            TimeSignature(
-                bpm = 120f,
-                beatCount = 2,
-                beatUnit = 2,
-                stepsPerBar = 16,
-                barsPerLoop = 1,
+    val audioGenerator = AudioGenerator(48000)
+    val instrument = Instrument(audioGenerator, 1).also {
+        it.setOscillators(
+            listOf(
+                OscillatorParams(
+                    id = "id",
+                    waveforms = listOf(
+                        WaveformParams(Waveform.SINE, 1.0),
+                        WaveformParams(Waveform.SINE, 0.5),
+                        WaveformParams(Waveform.SINE, 8.0),
+                    )
+                ),
             )
         )
     }
@@ -83,27 +89,28 @@ class CreateInstrumentVM(private val audioEngine: AudioEngine) : Consumer<Event>
         }
 
     private fun createSynthEvent(synthId: String) {
-        audioEngine.setSynthLoopEvents(
-            synthId,
-            listOf(
-                SynthEventData(
-                    frequency = Pitch.note("C", 4).toFloat(),
-                    position = 1,
-                    duration = 2f,
-                )
-            )
-        )
+//        audioEngine.setSynthLoopEvents(
+//            synthId,
+//            listOf(
+//                SynthEventData(
+//                    frequency = Pitch.note("C", 4).toFloat(),
+//                    position = 1,
+//                    duration = 2f,
+//                )
+//            )
+//        )
     }
 
     private fun updateIsPlaying(state: State) {
-        val isNew = !audioEngine.isSynthRegistered(state.data.id)
-        audioEngine.createOrUpdateInstrument(state.data)
-
-        if (isNew) {
-            createSynthEvent(state.data.id)
-        }
-
-        audioEngine.setIsPlaying(state.isPlaying)
+//        val isNew = !audioEngine.isSynthRegistered(state.data.id)
+//        audioEngine.createOrUpdateInstrument(state.data)
+//
+//        if (isNew) {
+//            createSynthEvent(state.data.id)
+//        }
+//
+//        audioEngine.setIsPlaying(state.isPlaying)
+        instrument.play(2f, Note.A.frequency(4))
     }
 
     data class State(

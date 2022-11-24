@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
 //                    Button(onClick = { audioEngine.togglePlaying() }) {
 //                        Text(text = "Toggle Playing")
 //                    }
-                    CreateInstrumentScreen(CreateInstrumentVM(audioEngine))
+                    CreateInstrumentScreen(CreateInstrumentVM())
                 }
             }
         }
