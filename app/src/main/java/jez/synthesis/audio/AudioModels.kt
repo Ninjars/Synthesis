@@ -1,5 +1,7 @@
 package jez.synthesis.audio
 
+import jez.synthesis.audiotrack.OscillatorParams
+
 data class TimeSignature(
     val bpm: Float,
     val beatCount: Int,
@@ -27,32 +29,19 @@ data class SynthEventData(
 data class SynthInstrumentData(
     val id: String,
     val name: String,
-    val oscillators: List<OscillatorProps>,
+    val oscillators: List<OscillatorParams>,
     val processors: List<ProcessorData>,
-    val attackTime: Float? = null,
-    val sustainLevel: Float? = null,
-    val releaseTime: Float? = null,
-    val decayTime: Float? = null,
-    val attackEnabled: Boolean = false,
-    val sustainEnabled: Boolean = false,
-    val releaseEnabled: Boolean = false,
-    val decayEnabled: Boolean = false,
-) {
-    data class OscillatorProps(
-        val waveform: WaveForm,
-    ) {
-        enum class WaveForm {
-            Sine,
-            Triangle,
-            Sawtooth,
-            Square,
-            Noise,
-            PulseWidthModulation,
-            KarplusStrong,
-            Table,
-        }
-    }
-}
+    val fade: Float = 1f,
+    val fadeEnabled: Boolean = false,
+//    val attackTime: Float? = null,
+//    val sustainLevel: Float? = null,
+//    val releaseTime: Float? = null,
+//    val decayTime: Float? = null,
+//    val attackEnabled: Boolean = false,
+//    val sustainEnabled: Boolean = false,
+//    val releaseEnabled: Boolean = false,
+//    val decayEnabled: Boolean = false,
+)
 
 sealed class ProcessorData {
     abstract val id: String

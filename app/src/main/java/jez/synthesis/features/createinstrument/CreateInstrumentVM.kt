@@ -4,9 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jez.synthesis.Consumer
-import jez.synthesis.audio.AudioEngine
 import jez.synthesis.audio.SynthInstrumentData
-import jez.synthesis.audio.SynthInstrumentData.OscillatorProps.WaveForm
 import jez.synthesis.audiotrack.AudioGenerator
 import jez.synthesis.audiotrack.Instrument
 import jez.synthesis.audiotrack.Note
@@ -18,6 +16,7 @@ import jez.synthesis.features.createinstrument.CreateInstrumentViewState.Instrum
 import jez.synthesis.toViewState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.util.*
 
 class CreateInstrumentVM : Consumer<Event>, ViewModel() {
@@ -26,7 +25,14 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
             data = SynthInstrumentData(
                 id = UUID.randomUUID().toString(),
                 name = "Instrument",
-                oscillators = listOf(SynthInstrumentData.OscillatorProps(WaveForm.Sawtooth)),
+                oscillators = listOf(
+                    OscillatorParams(
+                        UUID.randomUUID().toString(),
+                        listOf(
+                            WaveformParams(Waveform.SINE, 1.0)
+                        )
+                    )
+                ),
                 processors = emptyList(),
             )
         )
@@ -34,59 +40,117 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
     val viewState: StateFlow<CreateInstrumentViewState> =
         stateFlow.toViewState(viewModelScope) { CreateInstrumentStateToViewState(it) }
 
-    val audioGenerator = AudioGenerator(48000)
-    val instrument = Instrument(audioGenerator, 1).also {
-        it.setOscillators(
-            listOf(
-                OscillatorParams(
-                    id = "id",
-                    waveforms = listOf(
-                        WaveformParams(Waveform.SINE, 1.0),
-                        WaveformParams(Waveform.SINE, 0.5),
-                        WaveformParams(Waveform.SINE, 8.0),
-                    )
-                ),
-            )
-        )
+    val audioGenerator = AudioGenerator(41000)
+    val instrument = Instrument(audioGenerator, 1)
+
+    init {
+        updateInstrument(stateFlow.value)
     }
 
     override fun accept(value: Event) {
-//        viewModelScope.launch {
-        stateFlow.value = processEvent(stateFlow.value, value)
-        updateIsPlaying(stateFlow.value)
-//        }
+        viewModelScope.launch {
+            stateFlow.value = processEvent(stateFlow.value, value)
+            updateInstrument(stateFlow.value)
+        }
     }
 
     private fun processEvent(state: State, event: Event): State =
         when (event) {
-            is Event.InstrumentLoaded -> State(data = event.data).also { createSynthEvent(it.data.id) }
-            is Event.ToggleIsPlaying -> state.copy(isPlaying = !state.isPlaying)
+            is Event.Play -> state.also { instrument.play(1f, Note.A.frequency(4)) }
             is Event.UpdateName -> state.copy(data = state.data.copy(name = event.value))
-            is Event.UpdateAttack -> state.copy(
+//            is Event.UpdateAttack -> state.copy(
+//                data = state.data.copy(
+//                    attackTime = event.value,
+//                    attackEnabled = event.enabled
+//                )
+//            )
+//            is Event.UpdateSustain -> state.copy(
+//                data = state.data.copy(
+//                    sustainLevel = event.value,
+//                    sustainEnabled = event.enabled
+//                )
+//            )
+//            is Event.UpdateRelease -> state.copy(
+//                data = state.data.copy(
+//                    releaseTime = event.value,
+//                    releaseEnabled = event.enabled
+//                )
+//            )
+//            is Event.UpdateDecay -> state.copy(
+//                data = state.data.copy(
+//                    decayTime = event.value,
+//                    decayEnabled = event.enabled
+//                )
+//            )
+            is Event.UpdateFade -> state.copy(
                 data = state.data.copy(
-                    attackTime = event.value,
-                    attackEnabled = event.enabled
+                    fade = event.value,
+                    fadeEnabled = event.enabled
                 )
             )
-            is Event.UpdateSustain -> state.copy(
+            is Event.ReorderWaveforms -> state.copy(
                 data = state.data.copy(
-                    sustainLevel = event.value,
-                    sustainEnabled = event.enabled
+                    oscillators = state.data.oscillators.map {
+                        if (it.id == event.oscillatorId) {
+                            it.copy(
+                                waveforms = it.waveforms.toMutableList().apply {
+                                    add(event.to, removeAt(event.from))
+                                }
+                            )
+                        } else {
+                            it
+                        }
+                    }
                 )
             )
-            is Event.UpdateRelease -> state.copy(
+            is Event.AddOscillator -> state.copy(
                 data = state.data.copy(
-                    releaseTime = event.value,
-                    releaseEnabled = event.enabled
+                    oscillators = state.data.oscillators + listOf(OscillatorParams())
                 )
             )
-            is Event.UpdateDecay -> state.copy(
+            is Event.DeleteOscillator -> state.copy(
                 data = state.data.copy(
-                    decayTime = event.value,
-                    decayEnabled = event.enabled
+                    oscillators = state.data.oscillators.filterNot { it.id == event.oscillatorId }
                 )
             )
+            is Event.AddWaveform -> state.updateOscillator(event.oscillatorId) {
+                it.copy(
+                    waveforms = it.waveforms + listOf(WaveformParams())
+                )
+            }
+            is Event.RemoveWaveform -> state.updateOscillator(event.oscillatorId) {
+                it.copy(
+                    waveforms = it.waveforms.dropLast(1)
+                )
+            }
+            is Event.UpdateWaveform -> state.updateOscillator(event.oscillatorId) {
+                it.copy(
+                    waveforms = it.waveforms.map { waveform ->
+                        if (waveform.id == event.waveformId) {
+                            waveform.copy(
+                                waveform = event.waveform,
+                                multiplier = event.multiplier
+                            )
+                        } else {
+                            waveform
+                        }
+                    }
+                )
+            }
         }
+
+    private fun State.updateOscillator(id: String, block: (OscillatorParams) -> OscillatorParams) =
+        copy(
+            data = data.copy(
+                oscillators = data.oscillators.map {
+                    if (it.id == id) {
+                        block(it)
+                    } else {
+                        it
+                    }
+                }
+            )
+        )
 
     private fun createSynthEvent(synthId: String) {
 //        audioEngine.setSynthLoopEvents(
@@ -101,16 +165,9 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
 //        )
     }
 
-    private fun updateIsPlaying(state: State) {
-//        val isNew = !audioEngine.isSynthRegistered(state.data.id)
-//        audioEngine.createOrUpdateInstrument(state.data)
-//
-//        if (isNew) {
-//            createSynthEvent(state.data.id)
-//        }
-//
-//        audioEngine.setIsPlaying(state.isPlaying)
-        instrument.play(2f, Note.A.frequency(4))
+    private fun updateInstrument(state: State) {
+        instrument.setOscillators(state.data.oscillators)
+        instrument.fade = if (state.data.fadeEnabled) state.data.fade.toDouble() else 1.0
     }
 
     data class State(
@@ -119,13 +176,25 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
     )
 
     sealed class Event {
-        data class InstrumentLoaded(val data: SynthInstrumentData) : Event()
-        object ToggleIsPlaying : Event()
+        object Play : Event()
         data class UpdateName(val value: String) : Event()
-        data class UpdateAttack(val value: Float, val enabled: Boolean) : Event()
-        data class UpdateSustain(val value: Float, val enabled: Boolean) : Event()
-        data class UpdateRelease(val value: Float, val enabled: Boolean) : Event()
-        data class UpdateDecay(val value: Float, val enabled: Boolean) : Event()
+
+        //        data class UpdateAttack(val value: Float, val enabled: Boolean) : Event()
+//        data class UpdateSustain(val value: Float, val enabled: Boolean) : Event()
+//        data class UpdateRelease(val value: Float, val enabled: Boolean) : Event()
+//        data class UpdateDecay(val value: Float, val enabled: Boolean) : Event()
+        data class UpdateFade(val value: Float, val enabled: Boolean) : Event()
+        data class ReorderWaveforms(val oscillatorId: String, val from: Int, val to: Int) : Event()
+        data class DeleteOscillator(val oscillatorId: String) : Event()
+        object AddOscillator : Event()
+        data class AddWaveform(val oscillatorId: String) : Event()
+        data class RemoveWaveform(val oscillatorId: String) : Event()
+        data class UpdateWaveform(
+            val oscillatorId: String,
+            val waveformId: String,
+            val waveform: Waveform,
+            val multiplier: Double
+        ) : Event()
     }
 }
 
@@ -134,16 +203,19 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
 data class CreateInstrumentViewState(
     val isPlaying: Boolean,
     val name: String,
-    val attack: InstrumentAttribute,
-    val sustain: InstrumentAttribute,
-    val release: InstrumentAttribute,
-    val decay: InstrumentAttribute,
+//    val attack: InstrumentAttribute,
+//    val sustain: InstrumentAttribute,
+//    val release: InstrumentAttribute,
+//    val decay: InstrumentAttribute,
+    val fade: InstrumentAttribute,
+    val oscillators: List<OscillatorParams>,
 ) {
     data class InstrumentAttribute(
-        val value: String = "/",
-        val fraction: Float = 0f,
+        val textValue: String = "/",
+        val value: Float = 0f,
         val enabled: Boolean = false,
         val minValue: Float = 0f,
+        val maxValue: Float = 1f,
     )
 }
 
@@ -153,27 +225,28 @@ object CreateInstrumentStateToViewState : (CreateInstrumentVM.State) -> CreateIn
             CreateInstrumentViewState(
                 isPlaying = state.isPlaying,
                 name = name,
-                attack = attackTime.toAttribute(AudioEngine.MinAttackTime, attackEnabled),
-                sustain = sustainLevel.toAttribute(AudioEngine.MinSustainLevel, sustainEnabled),
-                release = releaseTime.toAttribute(AudioEngine.MinReleaseTime, releaseEnabled),
-                decay = decayTime.toAttribute(AudioEngine.MinDecayTime, decayEnabled),
+//                attack = attackTime.toAttribute(AudioEngine.MinAttackTime, attackEnabled),
+//                sustain = sustainLevel.toAttribute(AudioEngine.MinSustainLevel, sustainEnabled),
+//                release = releaseTime.toAttribute(AudioEngine.MinReleaseTime, releaseEnabled),
+//                decay = decayTime.toAttribute(AudioEngine.MinDecayTime, decayEnabled),
+                fade = fade.toAttribute(0f, 10f, fadeEnabled),
+                oscillators = oscillators,
             )
         }
 
-    private fun Float?.toAttribute(minValue: Float, enabled: Boolean) =
+    private fun Float?.toAttribute(minValue: Float, maxValue: Float, enabled: Boolean) =
         if (this == null) {
             InstrumentAttribute()
         } else {
             InstrumentAttribute(
-                value = this.toDisplayString(enabled),
-                fraction = this.toDisplayFraction(),
+                textValue = this.toDisplayString(enabled),
+                value = this,
                 enabled = enabled,
                 minValue = minValue,
+                maxValue = maxValue,
             )
         }
 
     private fun Float?.toDisplayString(enabled: Boolean) =
         if (this == null || !enabled) "/" else "%.2f".format(this)
-
-    private fun Float?.toDisplayFraction() = this?.coerceIn(0f, 1f) ?: 0f
 }

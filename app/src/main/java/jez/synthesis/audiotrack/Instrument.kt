@@ -11,18 +11,25 @@ class Instrument(
 ) {
     private val sampleRate = audioGenerator.sampleRate
     private var oscillators: List<Oscillator> = emptyList()
-    private var fade: Double = 1.0
+    var fade: Double = 1.0
 
     init {
         audioGenerator.createPlayer(id)
     }
 
     fun setOscillators(oscillators: List<OscillatorParams>) {
-        this.oscillators = oscillators.map { Oscillator(sampleRate, it) }
+        this.oscillators = oscillators.map {
+            Oscillator(
+                sampleRate = sampleRate,
+                params = it,
+            )
+        }
     }
 
     fun play(duration: Float, frequency: Double) {
         Timber.i("play $duration $frequency")
+        if (oscillators.isEmpty()) return
+
         audioGenerator.writeSound(createSamples(duration, frequency))
     }
 

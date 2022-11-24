@@ -51,13 +51,6 @@ public class AudioGenerator {
                 AudioTrack.MODE_STREAM,
                 sessionId
         );
-//        audioTrack = new AudioTrack(
-//                AudioManager.STREAM_MUSIC,
-//                sampleRate,
-//                AudioFormat.CHANNEL_OUT_MONO,
-//                AudioFormat.ENCODING_PCM_16BIT,
-//                sampleRate,
-//                AudioTrack.MODE_STREAM);
         audioTrack.play();
     }
 
