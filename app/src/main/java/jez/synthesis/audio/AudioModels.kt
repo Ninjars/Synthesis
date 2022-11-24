@@ -26,12 +26,17 @@ data class SynthEventData(
 
 data class SynthInstrumentData(
     val id: String,
+    val name: String,
     val oscillators: List<OscillatorProps>,
     val processors: List<ProcessorData>,
     val attackTime: Float? = null,
     val sustainLevel: Float? = null,
     val releaseTime: Float? = null,
     val decayTime: Float? = null,
+    val attackEnabled: Boolean = false,
+    val sustainEnabled: Boolean = false,
+    val releaseEnabled: Boolean = false,
+    val decayEnabled: Boolean = false,
 ) {
     data class OscillatorProps(
         val waveform: WaveForm,

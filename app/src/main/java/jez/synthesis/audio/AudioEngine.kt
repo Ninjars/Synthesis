@@ -63,6 +63,11 @@ class AudioEngine(
         engine.sequencerController.setPlaying(isPlaying)
     }
 
+    fun setIsPlaying(play: Boolean) {
+        Timber.i("setIsPlaying $play")
+        engine.sequencerController.setPlaying(play)
+    }
+
     fun setTimeSignature(timeSignature: TimeSignature) {
         this.timeSignature = timeSignature
         with(engine.sequencerController) {
@@ -71,17 +76,35 @@ class AudioEngine(
         }
     }
 
-    fun createOrUpdateInstrument(instrument: SynthInstrumentData) {
+    fun isSynthRegistered(id: String) = synths.contains(id)
+
+    fun createOrUpdateInstrument(instrument: SynthInstrumentData): SynthInstrument {
         Timber.i("createOrUpdateInstrument $instrument")
         val synth = synths.getOrDefault(instrument.id, SynthInstrument())
         instrument.oscillators.forEachIndexed { index, data ->
             synth.getOscillatorProperties(index).waveform = data.waveform.ordinal
         }
         with(synth.adsr) {
-            instrument.attackTime?.let { attackTime = it }
-            instrument.sustainLevel?.let { sustainLevel = it }
-            instrument.releaseTime?.let { releaseTime = it }
-            instrument.decayTime?.let { decayTime = it }
+            attackTime = if (instrument.attackEnabled && instrument.attackTime != null) {
+                instrument.attackTime.coerceAtLeast(MinAttackTime)
+            } else {
+                MinAttackTime
+            }
+            sustainLevel = if (instrument.sustainEnabled && instrument.sustainLevel != null) {
+                instrument.sustainLevel.coerceAtLeast(MinSustainLevel)
+            } else {
+                MinSustainLevel
+            }
+            releaseTime = if (instrument.releaseEnabled && instrument.releaseTime != null) {
+                instrument.releaseTime.coerceAtLeast(MinReleaseTime)
+            } else {
+                MinReleaseTime
+            }
+            decayTime = if (instrument.decayEnabled && instrument.decayTime != null) {
+                instrument.decayTime.coerceAtLeast(MinDecayTime)
+            } else {
+                MinDecayTime
+            }
         }
         val processors = instrument.processors.map {
             it.id to mapProcessorDataToInstance(it, synthProcessors[it.id])
@@ -93,6 +116,7 @@ class AudioEngine(
         }
         synthProcessors.putAll(processors)
         synths[instrument.id] = synth
+        return synth
     }
 
     fun addSynthLoopEvents(synthId: String, events: List<SynthEventData>) {
@@ -114,6 +138,26 @@ class AudioEngine(
                 )
             }
         )
+        Timber.i("> events $existing")
+    }
+
+    fun setSynthLoopEvents(synthId: String, events: List<SynthEventData>) {
+        Timber.i("setSynthLoopEvents for $synthId ${events.size}")
+        val synth = synths[synthId]
+        if (synth == null) {
+            Timber.e("synth with id $synthId not registered")
+            return
+        }
+        synthEvents[synthId]?.forEach { it.delete() }
+
+        synthEvents[synthId] = events.map {
+            SynthEvent(
+                it.frequency,
+                it.position,
+                it.duration,
+                synth,
+            )
+        }.toMutableList()
     }
 
     fun dispose() {
@@ -145,6 +189,12 @@ class AudioEngine(
     companion object {
         private const val OutputChannels = 2 // 1 for mono, 2 for stereo
         private const val InputChannels = 1
+
+
+        const val MinAttackTime = 0.01f
+        const val MinDecayTime = 0.0f
+        const val MinSustainLevel = 0.1f
+        const val MinReleaseTime = 0.01f
 
         fun create(activity: Activity, timeSignature: TimeSignature): AudioEngine =
             AudioEngine(
