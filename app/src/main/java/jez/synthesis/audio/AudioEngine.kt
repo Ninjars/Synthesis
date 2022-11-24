@@ -2,6 +2,7 @@ package jez.synthesis.audio
 
 import android.app.Activity
 import nl.igorski.mwengine.MWEngine
+import nl.igorski.mwengine.core.BaseProcessor
 import nl.igorski.mwengine.core.Drivers
 import nl.igorski.mwengine.core.LPFHPFilter
 import nl.igorski.mwengine.core.Limiter
@@ -20,9 +21,14 @@ class AudioEngine(
     private val engine = MWEngine(engineStateObserver)
     private var isPlaying = false
 
+    /**
+     * Strong references must be kept to everything that connect to JNI objects
+     * as the garbage collection of the JVM object will destroy the native one,
+     * and native references to the native object are not tracked by the JVM.
+     **/
     private val synths = HashMap<String, SynthInstrument>()
     private val synthEvents = HashMap<String, MutableList<SynthEvent>>()
-
+    private val synthProcessors = HashMap<String, BaseProcessor>()
     private val masterFilter by lazy {
         LPFHPFilter(
             MWEngine.SAMPLE_RATE.toFloat(),
@@ -65,9 +71,9 @@ class AudioEngine(
         }
     }
 
-    fun addInstrument(instrument: SynthInstrumentData) {
-        Timber.i("addInstrument $instrument")
-        val synth = SynthInstrument()
+    fun createOrUpdateInstrument(instrument: SynthInstrumentData) {
+        Timber.i("createOrUpdateInstrument $instrument")
+        val synth = synths.getOrDefault(instrument.id, SynthInstrument())
         instrument.oscillators.forEachIndexed { index, data ->
             synth.getOscillatorProperties(index).waveform = data.waveform.ordinal
         }
@@ -77,7 +83,15 @@ class AudioEngine(
             instrument.releaseTime?.let { releaseTime = it }
             instrument.decayTime?.let { decayTime = it }
         }
-        // TODO: support additional nodes, eg filter, phase, delay, gain - learn how to ramp values
+        val processors = instrument.processors.map {
+            it.id to mapProcessorDataToInstance(it, synthProcessors[it.id])
+        }
+
+        synth.audioChannel.processingChain.reset() // might need to invoke delete() instead
+        processors.forEach { (_, processor) ->
+            synth.audioChannel.processingChain.addProcessor(processor)
+        }
+        synthProcessors.putAll(processors)
         synths[instrument.id] = synth
     }
 
@@ -120,6 +134,9 @@ class AudioEngine(
 
         synths.values.forEach { it.delete() }
         synths.clear()
+
+        synthProcessors.values.forEach { it.delete() }
+        synthProcessors.clear()
 
         // flush sample memory allocated in the SampleManager
         SampleManager.flushSamples()

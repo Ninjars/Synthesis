@@ -27,6 +27,7 @@ data class SynthEventData(
 data class SynthInstrumentData(
     val id: String,
     val oscillators: List<OscillatorProps>,
+    val processors: List<ProcessorData>,
     val attackTime: Float? = null,
     val sustainLevel: Float? = null,
     val releaseTime: Float? = null,
@@ -46,4 +47,17 @@ data class SynthInstrumentData(
             Table,
         }
     }
+}
+
+sealed class ProcessorData {
+    abstract val id: String
+
+    data class PhaserData(
+        override val id: String,
+        val rate: Float,
+        val feedback: Float,
+        val depth: Float,
+        val min: Float,
+        val max: Float,
+    ) : ProcessorData()
 }

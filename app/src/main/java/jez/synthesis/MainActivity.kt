@@ -37,9 +37,10 @@ class MainActivity : ComponentActivity() {
                         val instrumentData = SynthInstrumentData(
                             id = "synth",
                             oscillators = listOf(SynthInstrumentData.OscillatorProps(WaveForm.PulseWidthModulation)),
+                            processors = emptyList(),
                             releaseTime = 0.15f,
                         )
-                        it.addInstrument(
+                        it.createOrUpdateInstrument(
                             instrumentData
                         )
                         it.addSynthLoopEvents(
