@@ -266,6 +266,7 @@ private fun OscillatorController(
         }
         Waveforms(eventHandler = eventHandler, oscillator = oscillator)
         Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             IconButton(onClick = { eventHandler(Event.RemoveWaveform(oscillator.id)) }) {
@@ -305,27 +306,56 @@ private fun Waveforms(
                             item.id,
                             it,
                             item.multiplier,
+                            item.backoff,
                         )
                     )
                 }
-                Slider(
-                    value = item.multiplier.toFloat(),
-                    valueRange = 0f..10f,
-                    onValueChange = {
-                        eventHandler(
-                            Event.UpdateWaveform(
-                                oscillator.id,
-                                item.id,
-                                item.waveform,
-                                it.toDouble(),
-                            )
+                Column {
+                    Row {
+                        Text(text = "Mult")
+                        Slider(
+                            value = item.multiplier.toFloat(),
+                            valueRange = 0.1f..5f,
+                            onValueChange = {
+                                eventHandler(
+                                    Event.UpdateWaveform(
+                                        oscillator.id,
+                                        item.id,
+                                        item.waveform,
+                                        it.toDouble(),
+                                        item.backoff,
+                                    )
+                                )
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp),
                         )
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp),
-                )
-                Text(text = "%.2f".format(item.multiplier))
+                        Text(text = "%.2f".format(item.multiplier))
+                    }
+                    Row {
+                        Text(text = "Fade")
+                        Slider(
+                            value = item.backoff.toFloat(),
+                            valueRange = 0.5f..10f,
+                            onValueChange = {
+                                eventHandler(
+                                    Event.UpdateWaveform(
+                                        oscillator.id,
+                                        item.id,
+                                        item.waveform,
+                                        item.multiplier,
+                                        it.toDouble(),
+                                    )
+                                )
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp),
+                        )
+                        Text(text = "%.2f".format(item.backoff))
+                    }
+                }
             }
         }
     }

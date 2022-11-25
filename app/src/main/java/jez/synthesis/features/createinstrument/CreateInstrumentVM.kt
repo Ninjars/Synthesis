@@ -129,7 +129,8 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
                         if (waveform.id == event.waveformId) {
                             waveform.copy(
                                 waveform = event.waveform,
-                                multiplier = event.multiplier
+                                multiplier = event.multiplier,
+                                backoff = event.backoff,
                             )
                         } else {
                             waveform
@@ -193,7 +194,8 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
             val oscillatorId: String,
             val waveformId: String,
             val waveform: Waveform,
-            val multiplier: Double
+            val multiplier: Double,
+            val backoff: Double,
         ) : Event()
     }
 }
