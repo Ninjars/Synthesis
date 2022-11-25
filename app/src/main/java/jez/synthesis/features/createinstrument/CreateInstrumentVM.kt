@@ -8,9 +8,11 @@ import jez.synthesis.audio.SynthInstrumentData
 import jez.synthesis.audiotrack.AudioGenerator
 import jez.synthesis.audiotrack.Instrument
 import jez.synthesis.audiotrack.Note
+import jez.synthesis.audiotrack.Oscillator
 import jez.synthesis.audiotrack.OscillatorParams
 import jez.synthesis.audiotrack.OscillatorParams.Waveform
 import jez.synthesis.audiotrack.OscillatorParams.WaveformParams
+import jez.synthesis.audiotrack.Sampler
 import jez.synthesis.features.createinstrument.CreateInstrumentVM.Event
 import jez.synthesis.features.createinstrument.CreateInstrumentViewState.InstrumentAttribute
 import jez.synthesis.toViewState
@@ -22,6 +24,7 @@ import java.util.*
 class CreateInstrumentVM : Consumer<Event>, ViewModel() {
     private val stateFlow = MutableStateFlow(
         State(
+            sampleRate = 22000,
             data = SynthInstrumentData(
                 id = UUID.randomUUID().toString(),
                 name = "Instrument",
@@ -167,12 +170,22 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
     }
 
     private fun updateInstrument(state: State) {
-        instrument.setOscillators(state.data.oscillators)
+        val sampler = Sampler(
+            state.sampleRate,
+            state.data.oscillators.map {
+                Oscillator(
+                    sampleRate = state.sampleRate,
+                    params = it,
+                )
+            }
+        )
+        instrument.sampler = sampler
         instrument.fade = if (state.data.fadeEnabled) state.data.fade.toDouble() else 1.0
     }
 
     data class State(
         val isPlaying: Boolean = false,
+        val sampleRate: Int,
         val data: SynthInstrumentData,
     )
 
