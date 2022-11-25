@@ -173,10 +173,7 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
         val sampler = Sampler(
             state.sampleRate,
             state.data.oscillators.map {
-                Oscillator(
-                    sampleRate = state.sampleRate,
-                    params = it,
-                )
+                Oscillator(params = it)
             }
         )
         instrument.sampler = sampler
@@ -224,6 +221,7 @@ data class CreateInstrumentViewState(
 //    val decay: InstrumentAttribute,
     val fade: InstrumentAttribute,
     val oscillators: List<OscillatorParams>,
+    val visualisedWaveform: DoubleArray,
 ) {
     data class InstrumentAttribute(
         val textValue: String = "/",
@@ -237,6 +235,15 @@ data class CreateInstrumentViewState(
 object CreateInstrumentStateToViewState : (CreateInstrumentVM.State) -> CreateInstrumentViewState {
     override fun invoke(state: CreateInstrumentVM.State): CreateInstrumentViewState =
         with(state.data) {
+            val sampler = Sampler(
+                500,
+                state.data.oscillators.map {
+                    Oscillator(params = it)
+                }
+            )
+            val samples = sampler.sample(1f, 10.0, state.data.fade.toDouble())
+
+
             CreateInstrumentViewState(
                 isPlaying = state.isPlaying,
                 name = name,
@@ -246,6 +253,7 @@ object CreateInstrumentStateToViewState : (CreateInstrumentVM.State) -> CreateIn
 //                decay = decayTime.toAttribute(AudioEngine.MinDecayTime, decayEnabled),
                 fade = fade.toAttribute(0f, 10f, fadeEnabled),
                 oscillators = oscillators,
+                visualisedWaveform = samples,
             )
         }
 

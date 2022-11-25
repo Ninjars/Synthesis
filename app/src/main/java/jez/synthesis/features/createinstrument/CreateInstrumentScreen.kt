@@ -1,5 +1,7 @@
 package jez.synthesis.features.createinstrument
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,6 +45,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -73,6 +81,7 @@ fun CreateInstrumentContent(
                 .fillMaxSize()
         ) {
             Name(eventHandler) { state.value.name }
+            Visualizer { state.value.visualisedWaveform }
             AttributeController(
                 "Fade",
                 updateHandler = { value, enabled ->
@@ -404,5 +413,41 @@ private fun WaveformSelector(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun Visualizer(
+    pathPointsProvider: () -> DoubleArray
+) {
+    val lineColor = MaterialTheme.colors.primary
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(4f)
+            .background(MaterialTheme.colors.surface)
+    ) {
+        val pathPoints = pathPointsProvider()
+        val max = pathPoints.max()
+        val xFactor = size.width / pathPoints.size
+        val yFactor = size.height / max.toFloat() / 2f
+        val path = Path().apply {
+            pathPoints.forEachIndexed { index, y ->
+                lineTo(
+                    index.toFloat() * xFactor,
+                    y.toFloat() * yFactor + size.height / 2f
+                )
+            }
+        }
+        drawLine(
+            brush = SolidColor(Color.LightGray),
+            start = Offset(0f, size.height / 2f),
+            end = Offset(size.width, size.height / 2f),
+        )
+        drawPath(
+            path,
+            brush = SolidColor(lineColor),
+            style = Stroke(5f)
+        )
     }
 }

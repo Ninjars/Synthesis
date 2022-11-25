@@ -25,12 +25,11 @@ data class OscillatorParams(
 }
 
 data class Oscillator(
-    val sampleRate: Int,
     val params: OscillatorParams,
 ) {
     val id = params.id
 
-    fun sample(sampleCount: Int, frequency: Double): List<Double> {
+    fun sample(sampleRate: Int, sampleCount: Int, frequency: Double): List<Double> {
         val step = frequency / sampleRate
         return List(sampleCount) { i ->
             val normalisedTime = i / (sampleCount - 1).toDouble()

@@ -16,18 +16,20 @@ data class Sampler(
         fade: Double,
     ): DoubleArray {
         val sampleCount = (duration * sampleRate).roundToInt()
-
-        return oscillators.map { it.sample(sampleCount, frequency) }.reduce { a, b ->
-            a.zip(b) { c, d -> c + d }
-        }.mapIndexed { index, value ->
-            val t = index / (sampleCount - 1).toDouble()
-            val attackPopFactor =
-                lerpClamped(0.0, 1.0, (index / attackPopSamples).coerceIn(0.0, 1.0))
-            val decayPopStart = sampleCount - 1 - decayPopSamples
-            val decayPopFactor =
-                lerpClamped(1.0, 0.0, ((index - decayPopStart) / decayPopSamples))
-            value / (oscillators.size).toDouble() * exp(-t * fade) * attackPopFactor * decayPopFactor
-        }.toDoubleArray()
+        return if (oscillators.isEmpty())
+            DoubleArray(0)
+        else
+            oscillators.map { it.sample(sampleRate, sampleCount, frequency) }.reduce { a, b ->
+                a.zip(b) { c, d -> c + d }
+            }.mapIndexed { index, value ->
+                val t = index / (sampleCount - 1).toDouble()
+                val attackPopFactor =
+                    lerpClamped(0.0, 1.0, (index / attackPopSamples).coerceIn(0.0, 1.0))
+                val decayPopStart = sampleCount - 1 - decayPopSamples
+                val decayPopFactor =
+                    lerpClamped(1.0, 0.0, ((index - decayPopStart) / decayPopSamples))
+                value / (oscillators.size).toDouble() * exp(-t * fade) * attackPopFactor * decayPopFactor
+            }.toDoubleArray()
     }
 
     private fun lerpClamped(a: Double, b: Double, factor: Double): Double {
