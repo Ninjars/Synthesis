@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import jez.synthesis.Consumer
 import jez.synthesis.audio.SynthInstrumentData
 import jez.synthesis.audiotrack.AudioGenerator
-import jez.synthesis.audiotrack.Instrument
 import jez.synthesis.audiotrack.Note
 import jez.synthesis.audiotrack.Oscillator
 import jez.synthesis.audiotrack.Oscillator.Waveform
@@ -46,25 +45,26 @@ class CreateInstrumentVM(
     val viewState: StateFlow<CreateInstrumentViewState> =
         stateFlow.toViewState(viewModelScope) { CreateInstrumentStateToViewState(it) }
 
-    val audioGenerator = AudioGenerator(41000)
-    val instrument = Instrument(audioGenerator, 1)
+    private val audioGenerator = AudioGenerator(41000)
 
     init {
         viewModelScope.launch {
-            updateInstrument(stateFlow.value)
+            repository.storeSampler(stateFlow.value.toSampler())
         }
     }
 
     override fun accept(value: Event) {
         viewModelScope.launch {
             stateFlow.value = processEvent(stateFlow.value, value)
-            updateInstrument(stateFlow.value)
+            repository.storeSampler(stateFlow.value.toSampler())
         }
     }
 
     private fun processEvent(state: State, event: Event): State =
         when (event) {
-            is Event.Play -> state.also { instrument.play(1f, Note.A.frequency(4)) }
+            is Event.Play -> state.also {
+                audioGenerator.writeSound(it.toSampler().sample(1f, Note.A.frequency(3)))
+            }
             is Event.UpdateName -> state.copy(data = state.data.copy(name = event.value))
             is Event.UpdateFade -> state.copy(
                 data = state.data.copy(
@@ -137,15 +137,12 @@ class CreateInstrumentVM(
             )
         )
 
-    private suspend fun updateInstrument(state: State) {
-        val sampler = Sampler(
-            id = state.samplerId,
-            sampleRate = state.sampleRate,
-            oscillators = state.data.oscillators
+    private fun State.toSampler() =
+        Sampler(
+            id = samplerId,
+            sampleRate = sampleRate,
+            oscillators = data.oscillators
         )
-        repository.storeSampler(sampler)
-        instrument.sampler = sampler
-    }
 
     data class State(
         val isPlaying: Boolean = false,
