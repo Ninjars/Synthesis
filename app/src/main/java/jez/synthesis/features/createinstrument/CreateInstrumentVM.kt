@@ -61,30 +61,6 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
         when (event) {
             is Event.Play -> state.also { instrument.play(1f, Note.A.frequency(4)) }
             is Event.UpdateName -> state.copy(data = state.data.copy(name = event.value))
-//            is Event.UpdateAttack -> state.copy(
-//                data = state.data.copy(
-//                    attackTime = event.value,
-//                    attackEnabled = event.enabled
-//                )
-//            )
-//            is Event.UpdateSustain -> state.copy(
-//                data = state.data.copy(
-//                    sustainLevel = event.value,
-//                    sustainEnabled = event.enabled
-//                )
-//            )
-//            is Event.UpdateRelease -> state.copy(
-//                data = state.data.copy(
-//                    releaseTime = event.value,
-//                    releaseEnabled = event.enabled
-//                )
-//            )
-//            is Event.UpdateDecay -> state.copy(
-//                data = state.data.copy(
-//                    decayTime = event.value,
-//                    decayEnabled = event.enabled
-//                )
-//            )
             is Event.UpdateFade -> state.copy(
                 data = state.data.copy(
                     fade = event.value,
@@ -155,19 +131,6 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
                 }
             )
         )
-
-    private fun createSynthEvent(synthId: String) {
-//        audioEngine.setSynthLoopEvents(
-//            synthId,
-//            listOf(
-//                SynthEventData(
-//                    frequency = Pitch.note("C", 4).toFloat(),
-//                    position = 1,
-//                    duration = 2f,
-//                )
-//            )
-//        )
-    }
 
     private fun updateInstrument(state: State) {
         val sampler = Sampler(
@@ -246,11 +209,6 @@ object CreateInstrumentStateToViewState : (CreateInstrumentVM.State) -> CreateIn
             CreateInstrumentViewState(
                 isPlaying = state.isPlaying,
                 name = name,
-//                attack = attackTime.toAttribute(AudioEngine.MinAttackTime, attackEnabled),
-//                sustain = sustainLevel.toAttribute(AudioEngine.MinSustainLevel, sustainEnabled),
-//                release = releaseTime.toAttribute(AudioEngine.MinReleaseTime, releaseEnabled),
-//                decay = decayTime.toAttribute(AudioEngine.MinDecayTime, decayEnabled),
-//                fade = fade.toAttribute(0f, 10f, fadeEnabled),
                 oscillators = oscillators,
                 visualisedWaveform = samples,
             )

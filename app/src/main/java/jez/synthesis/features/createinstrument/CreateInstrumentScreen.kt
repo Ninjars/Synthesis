@@ -16,13 +16,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Card
-import androidx.compose.material.Checkbox
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.FloatingActionButton
@@ -30,7 +28,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Slider
-import androidx.compose.material.SliderDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
@@ -57,7 +54,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import jez.synthesis.audiotrack.OscillatorParams
 import jez.synthesis.features.createinstrument.CreateInstrumentVM.Event
-import jez.synthesis.features.createinstrument.CreateInstrumentViewState.InstrumentAttribute
 import jez.synthesis.rememberEventConsumer
 import timber.log.Timber
 
@@ -85,54 +81,6 @@ fun CreateInstrumentContent(
         ) {
             Name(eventHandler) { state.value.name }
             Visualizer { state.value.visualisedWaveform }
-//            AttributeController(
-//                "Fade",
-//                updateHandler = { value, enabled ->
-//                    eventHandler(
-//                        Event.UpdateFade(
-//                            value = value,
-//                            enabled = enabled
-//                        )
-//                    )
-//                },
-//                attributeProvider = { state.value.fade }
-//            )
-//            AttributeController(
-//                "Sustain",
-//                updateHandler = { value, enabled ->
-//                    eventHandler(
-//                        Event.UpdateSustain(
-//                            value = value,
-//                            enabled = enabled
-//                        )
-//                    )
-//                },
-//                attributeProvider = { state.value.sustain }
-//            )
-//            AttributeController(
-//                "Release",
-//                updateHandler = { value, enabled ->
-//                    eventHandler(
-//                        Event.UpdateRelease(
-//                            value = value,
-//                            enabled = enabled
-//                        )
-//                    )
-//                },
-//                attributeProvider = { state.value.release }
-//            )
-//            AttributeController(
-//                "Decay",
-//                updateHandler = { value, enabled ->
-//                    eventHandler(
-//                        Event.UpdateDecay(
-//                            value = value,
-//                            enabled = enabled
-//                        )
-//                    )
-//                },
-//                attributeProvider = { state.value.decay },
-//            )
             Oscillators(eventHandler) { state.value.oscillators }
 
             Spacer(modifier = Modifier.height(64.dp))
@@ -154,58 +102,6 @@ private fun BoxScope.PlayPauseButton(
         Icon(
             imageVector = if (isPlaying()) Icons.Filled.Pause else Icons.Filled.PlayArrow,
             contentDescription = "Play/Pause",
-        )
-    }
-}
-
-@Composable
-private fun AttributeController(
-    label: String,
-    updateHandler: (Float, Boolean) -> Unit,
-    attributeProvider: () -> InstrumentAttribute
-) {
-    val attribute = attributeProvider()
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row {
-                Text(text = label)
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = attribute.textValue)
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(text = "Enabled: ")
-                Checkbox(
-                    checked = attribute.enabled,
-                    onCheckedChange = { updateHandler(attribute.value, it) }
-                )
-            }
-        }
-        Slider(
-            value = attribute.value,
-            valueRange = attribute.minValue..attribute.maxValue,
-            onValueChange = { updateHandler(it, true) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            colors = if (attribute.enabled) {
-                SliderDefaults.colors()
-            } else {
-                val normalColors =
-                    SliderDefaults.colors()
-                SliderDefaults.colors(
-                    activeTrackColor = normalColors.trackColor(
-                        enabled = false,
-                        active = true
-                    ).value,
-                    thumbColor = normalColors.thumbColor(enabled = false).value,
-                )
-            }
         )
     }
 }
