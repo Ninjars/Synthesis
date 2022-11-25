@@ -176,7 +176,7 @@ fun NoteGrid(
         (0 until grid.height).forEach { y ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 (0 until width).forEach { x ->
-                    val offset = IntOffset(x, y)
+                    val offset = IntOffset(x, grid.height - y - 1)
                     val isSelected = selected.contains(offset)
                     NoteCell(
                         onClick = { eventHandler(Event.SetGridCell(offset, it)) },
