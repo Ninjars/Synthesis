@@ -3,8 +3,8 @@ package jez.synthesis.features.createinstrument
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Arrangement.Absolute.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
+import androidx.compose.material.Card
 import androidx.compose.material.Checkbox
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
@@ -233,7 +235,8 @@ private fun Oscillators(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = spacedBy(8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -249,7 +252,9 @@ private fun Oscillators(
             }
         }
         oscillators().forEachIndexed { index, it ->
-            OscillatorController(eventHandler, it, index)
+            Card {
+                OscillatorController(eventHandler, it, index)
+            }
         }
     }
 }
@@ -260,7 +265,11 @@ private fun OscillatorController(
     oscillator: OscillatorParams,
     index: Int,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -279,16 +288,16 @@ private fun OscillatorController(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            IconButton(onClick = { eventHandler(Event.RemoveWaveform(oscillator.id)) }) {
-                Icon(
-                    imageVector = Icons.Filled.DeleteForever,
-                    contentDescription = "Delete last waveform"
-                )
-            }
             IconButton(onClick = { eventHandler(Event.AddWaveform(oscillator.id)) }) {
                 Icon(
                     imageVector = Icons.Filled.Add,
                     contentDescription = "Append new waveform"
+                )
+            }
+            IconButton(onClick = { eventHandler(Event.RemoveWaveform(oscillator.id)) }) {
+                Icon(
+                    imageVector = Icons.Filled.DeleteForever,
+                    contentDescription = "Delete last waveform"
                 )
             }
         }
@@ -300,10 +309,7 @@ private fun Waveforms(
     eventHandler: (Event) -> Unit,
     oscillator: OscillatorParams,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
+    Column {
         oscillator.waveforms.forEach { item ->
             Row(
                 modifier = Modifier
@@ -379,11 +385,10 @@ private fun WaveformSelector(
     var isExpanded by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf(selectedValue) }
 
-    Box(
+    Button(
         modifier = Modifier
-            .padding(8.dp)
-            .clickable { isExpanded = !isExpanded },
-        contentAlignment = Alignment.Center,
+            .padding(end = 8.dp),
+        onClick = { isExpanded = !isExpanded },
     ) {
         Text(
             text = selectedValue.name,

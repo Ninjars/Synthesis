@@ -2,6 +2,7 @@ package jez.synthesis.audiotrack
 
 import jez.synthesis.audiotrack.OscillatorParams.Waveform
 import java.util.*
+import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.sin
 
@@ -21,6 +22,7 @@ data class OscillatorParams(
 
     enum class Waveform {
         SINE,
+        COS,
     }
 }
 
@@ -62,5 +64,7 @@ data class Oscillator(
         when (waveform) {
             Waveform.SINE ->
                 sin(cycle * multiplier + inputValue) * exp(-normalisedTime * backoff)
+            Waveform.COS ->
+                cos(cycle * multiplier + inputValue) * exp(-normalisedTime * backoff)
         }
 }
