@@ -28,11 +28,11 @@ class SequencerVM(
         State(
             sampler = null,
             samplers = emptyList(),
-            beatCount = 16,
-            toneCount = 24,
+            beatCount = 8,
+            toneCount = 12,
             bassNote = Note.A,
             octave = 3,
-            input = emptyList(),
+            input = repository.getInput(),
             isPlaying = false,
             isProcessing = false,
             bpm = 130,
@@ -59,6 +59,7 @@ class SequencerVM(
     }
 
     private fun updateAudioTrack(state: State) {
+        repository.saveInput(state.input)
         tracks.forEach { it.stop() }
         if (state.sampler != null && state.isPlaying) {
             // rebuild sequence
