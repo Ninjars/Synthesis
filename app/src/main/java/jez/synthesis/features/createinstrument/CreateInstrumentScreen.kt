@@ -57,6 +57,7 @@ import jez.synthesis.audiotrack.OscillatorParams
 import jez.synthesis.features.createinstrument.CreateInstrumentVM.Event
 import jez.synthesis.features.createinstrument.CreateInstrumentViewState.InstrumentAttribute
 import jez.synthesis.rememberEventConsumer
+import timber.log.Timber
 
 @Composable
 fun CreateInstrumentScreen(viewModel: CreateInstrumentVM) {
@@ -432,10 +433,12 @@ fun Visualizer(
         val xFactor = size.width / pathPoints.size
         val yFactor = size.height / max.toFloat() / 2f
         val path = Path().apply {
+            moveTo(0f, size.height - (pathPoints.first().toFloat() * yFactor + size.height / 2f))
             pathPoints.forEachIndexed { index, y ->
+                Timber.i("$y")
                 lineTo(
                     index.toFloat() * xFactor,
-                    y.toFloat() * yFactor + size.height / 2f
+                    size.height - (y.toFloat() * yFactor + size.height / 2f)
                 )
             }
         }
