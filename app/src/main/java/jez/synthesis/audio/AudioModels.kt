@@ -1,6 +1,6 @@
 package jez.synthesis.audio
 
-import jez.synthesis.audiotrack.OscillatorParams
+import jez.synthesis.audiotrack.Oscillator
 
 data class TimeSignature(
     val bpm: Float,
@@ -29,7 +29,7 @@ data class SynthEventData(
 data class SynthInstrumentData(
     val id: String,
     val name: String,
-    val oscillators: List<OscillatorParams>,
+    val oscillators: List<Oscillator>,
     val processors: List<ProcessorData>,
     val fade: Float = 1f,
     val fadeEnabled: Boolean = false,

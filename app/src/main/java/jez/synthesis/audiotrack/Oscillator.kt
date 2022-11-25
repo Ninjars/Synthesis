@@ -1,15 +1,11 @@
 package jez.synthesis.audiotrack
 
-import jez.synthesis.audiotrack.OscillatorParams.Waveform
 import java.util.*
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.sin
 
-/**
- * attack and fade are normalised progress amounts to fade in and out
- */
-data class OscillatorParams(
+data class Oscillator(
     val id: String = UUID.randomUUID().toString(),
     var waveforms: List<WaveformParams> = listOf(WaveformParams()),
 ) {
@@ -24,12 +20,6 @@ data class OscillatorParams(
         SINE,
         COS,
     }
-}
-
-data class Oscillator(
-    val params: OscillatorParams,
-) {
-    val id = params.id
 
     fun sample(sampleRate: Int, sampleCount: Int, frequency: Double): List<Double> {
         val step = frequency / sampleRate
@@ -41,7 +31,7 @@ data class Oscillator(
     }
 
     private fun getValue(cycle: Double, normalisedTime: Double) =
-        params.waveforms
+        waveforms
             .foldRight(0.0) { next, acc ->
                 getValue(
                     waveform = next.waveform,

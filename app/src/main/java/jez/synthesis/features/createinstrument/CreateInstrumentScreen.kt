@@ -52,7 +52,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import jez.synthesis.audiotrack.OscillatorParams
+import jez.synthesis.audiotrack.Oscillator
 import jez.synthesis.features.createinstrument.CreateInstrumentVM.Event
 import jez.synthesis.rememberEventConsumer
 import timber.log.Timber
@@ -126,7 +126,7 @@ private fun Name(
 @Composable
 private fun Oscillators(
     eventHandler: (Event) -> Unit,
-    oscillators: () -> List<OscillatorParams>
+    oscillators: () -> List<Oscillator>
 ) {
     Column(
         modifier = Modifier
@@ -158,7 +158,7 @@ private fun Oscillators(
 @Composable
 private fun OscillatorController(
     eventHandler: (Event) -> Unit,
-    oscillator: OscillatorParams,
+    oscillator: Oscillator,
     index: Int,
 ) {
     Column(
@@ -203,7 +203,7 @@ private fun OscillatorController(
 @Composable
 private fun Waveforms(
     eventHandler: (Event) -> Unit,
-    oscillator: OscillatorParams,
+    oscillator: Oscillator,
 ) {
     Column {
         oscillator.waveforms.forEach { item ->
@@ -275,8 +275,8 @@ private fun Waveforms(
 
 @Composable
 private fun WaveformSelector(
-    selectedValue: OscillatorParams.Waveform,
-    eventHandler: (OscillatorParams.Waveform) -> Unit,
+    selectedValue: Oscillator.Waveform,
+    eventHandler: (Oscillator.Waveform) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf(selectedValue) }
@@ -293,7 +293,7 @@ private fun WaveformSelector(
             expanded = isExpanded,
             onDismissRequest = { isExpanded = false }
         ) {
-            OscillatorParams.Waveform.values().forEach { value ->
+            Oscillator.Waveform.values().forEach { value ->
                 DropdownMenuItem(
                     onClick = {
                         isExpanded = false

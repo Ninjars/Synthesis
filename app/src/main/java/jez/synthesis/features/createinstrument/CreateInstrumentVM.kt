@@ -9,9 +9,8 @@ import jez.synthesis.audiotrack.AudioGenerator
 import jez.synthesis.audiotrack.Instrument
 import jez.synthesis.audiotrack.Note
 import jez.synthesis.audiotrack.Oscillator
-import jez.synthesis.audiotrack.OscillatorParams
-import jez.synthesis.audiotrack.OscillatorParams.Waveform
-import jez.synthesis.audiotrack.OscillatorParams.WaveformParams
+import jez.synthesis.audiotrack.Oscillator.Waveform
+import jez.synthesis.audiotrack.Oscillator.WaveformParams
 import jez.synthesis.audiotrack.Sampler
 import jez.synthesis.features.createinstrument.CreateInstrumentVM.Event
 import jez.synthesis.features.createinstrument.CreateInstrumentViewState.InstrumentAttribute
@@ -25,11 +24,12 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
     private val stateFlow = MutableStateFlow(
         State(
             sampleRate = 22000,
+            samplerId = UUID.randomUUID().toString(),
             data = SynthInstrumentData(
                 id = UUID.randomUUID().toString(),
                 name = "Instrument",
                 oscillators = listOf(
-                    OscillatorParams(
+                    Oscillator(
                         UUID.randomUUID().toString(),
                         listOf(
                             WaveformParams(Waveform.SINE, 1.0)
@@ -84,7 +84,7 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
             )
             is Event.AddOscillator -> state.copy(
                 data = state.data.copy(
-                    oscillators = state.data.oscillators + listOf(OscillatorParams())
+                    oscillators = state.data.oscillators + listOf(Oscillator())
                 )
             )
             is Event.DeleteOscillator -> state.copy(
@@ -119,7 +119,7 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
             }
         }
 
-    private fun State.updateOscillator(id: String, block: (OscillatorParams) -> OscillatorParams) =
+    private fun State.updateOscillator(id: String, block: (Oscillator) -> Oscillator) =
         copy(
             data = data.copy(
                 oscillators = data.oscillators.map {
@@ -134,10 +134,9 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
 
     private fun updateInstrument(state: State) {
         val sampler = Sampler(
-            state.sampleRate,
-            state.data.oscillators.map {
-                Oscillator(params = it)
-            }
+            id = state.samplerId,
+            sampleRate = state.sampleRate,
+            oscillators = state.data.oscillators
         )
         instrument.sampler = sampler
     }
@@ -145,6 +144,7 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
     data class State(
         val isPlaying: Boolean = false,
         val sampleRate: Int,
+        val samplerId: String,
         val data: SynthInstrumentData,
     )
 
@@ -182,7 +182,7 @@ data class CreateInstrumentViewState(
 //    val release: InstrumentAttribute,
 //    val decay: InstrumentAttribute,
 //    val fade: InstrumentAttribute,
-    val oscillators: List<OscillatorParams>,
+    val oscillators: List<Oscillator>,
     val visualisedWaveform: DoubleArray,
 ) {
     data class InstrumentAttribute(
@@ -198,10 +198,9 @@ object CreateInstrumentStateToViewState : (CreateInstrumentVM.State) -> CreateIn
     override fun invoke(state: CreateInstrumentVM.State): CreateInstrumentViewState =
         with(state.data) {
             val sampler = Sampler(
-                500,
-                state.data.oscillators.map {
-                    Oscillator(params = it)
-                }
+                id = "demo",
+                sampleRate = 500,
+                oscillators = state.data.oscillators,
             )
             val samples = sampler.sample(1f, 10.0)
 
