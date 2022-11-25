@@ -419,7 +419,7 @@ private fun WaveformSelector(
 
 @Composable
 fun Visualizer(
-    pathPointsProvider: () -> List<Double>
+    pathPointsProvider: () -> DoubleArray
 ) {
     val lineColor = MaterialTheme.colors.primary
     Canvas(

@@ -220,7 +220,7 @@ data class CreateInstrumentViewState(
 //    val decay: InstrumentAttribute,
 //    val fade: InstrumentAttribute,
     val oscillators: List<OscillatorParams>,
-    val visualisedWaveform: List<Double>,
+    val visualisedWaveform: DoubleArray,
 ) {
     data class InstrumentAttribute(
         val textValue: String = "/",
@@ -252,7 +252,7 @@ object CreateInstrumentStateToViewState : (CreateInstrumentVM.State) -> CreateIn
 //                decay = decayTime.toAttribute(AudioEngine.MinDecayTime, decayEnabled),
 //                fade = fade.toAttribute(0f, 10f, fadeEnabled),
                 oscillators = oscillators,
-                visualisedWaveform = samples.toList(),
+                visualisedWaveform = samples,
             )
         }
 
