@@ -16,7 +16,7 @@ object AudioTrackGenerator {
         sampler: Sampler,
         input: List<AudioInput>,
     ): AudioTrack {
-        val samplesPerBeat = ((bpm / 60.0) * sampler.sampleRate).toInt()
+        val samplesPerBeat = ((bpm / 60.0) * sampler.sampleRate).toInt() / 4
         val samples = input.flatMap {
             sampler.sample(it.beatCount * samplesPerBeat, it.frequency).asIterable()
         }.toDoubleArray()
