@@ -5,19 +5,25 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.push
 import jez.synthesis.Consumer
 import jez.synthesis.audiotrack.AudioInput
 import jez.synthesis.audiotrack.AudioTrackGenerator
 import jez.synthesis.audiotrack.Note
 import jez.synthesis.audiotrack.Sampler
 import jez.synthesis.features.sequencer.SequencerVM.Event
+import jez.synthesis.navigation.NavTarget
 import jez.synthesis.persistence.Repository
 import jez.synthesis.toViewState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class SequencerVM(repository: Repository) : Consumer<Event>, ViewModel() {
+class SequencerVM(
+    private val repository: Repository,
+    private val backStack: BackStack<NavTarget>
+) : Consumer<Event>, ViewModel() {
     private val stateFlow = MutableStateFlow(
         State(
             sampler = null,
@@ -35,7 +41,7 @@ class SequencerVM(repository: Repository) : Consumer<Event>, ViewModel() {
     val viewState: StateFlow<SequencerViewState> =
         stateFlow.toViewState(viewModelScope) { SequencerStateToViewState(it) }
 
-    var tracks = listOf<AudioTrack>()
+    private var tracks = listOf<AudioTrack>()
 
     init {
         viewModelScope.launch {
@@ -103,6 +109,9 @@ class SequencerVM(repository: Repository) : Consumer<Event>, ViewModel() {
                 }
             )
             is Event.SetIsPlaying -> state.copy(isPlaying = event.isPlaying)
+            is Event.SelectedSampler -> state.copy(sampler = state.samplers[event.index])
+            is Event.EditSampler -> state.also { backStack.push(NavTarget.Instrument(state.sampler?.id)) }
+            is Event.CreateNewSampler -> state.also { backStack.push(NavTarget.Instrument(null)) }
         }
 
     data class State(
@@ -122,6 +131,9 @@ class SequencerVM(repository: Repository) : Consumer<Event>, ViewModel() {
         data class SamplerListUpdate(val samplers: List<Sampler>) : Event()
         data class SetGridCell(val position: IntOffset, val enabled: Boolean) : Event()
         data class SetIsPlaying(val isPlaying: Boolean) : Event()
+        data class SelectedSampler(val index: Int) : Event()
+        object EditSampler : Event()
+        object CreateNewSampler : Event()
     }
 }
 
@@ -129,6 +141,8 @@ class SequencerVM(repository: Repository) : Consumer<Event>, ViewModel() {
 data class SequencerViewState(
     val grid: Grid,
     val isPlaying: Boolean,
+    val sequencerIndex: Int,
+    val sequencerNames: List<String>,
 ) {
     data class Grid(
         val width: Int,
@@ -145,6 +159,8 @@ object SequencerStateToViewState : (SequencerVM.State) -> SequencerViewState {
                 width = state.beatCount,
                 height = state.toneCount,
                 selected = state.input,
-            )
+            ),
+            sequencerIndex = state.samplers.indexOf(state.sampler),
+            sequencerNames = state.samplers.map { it.name },
         )
 }

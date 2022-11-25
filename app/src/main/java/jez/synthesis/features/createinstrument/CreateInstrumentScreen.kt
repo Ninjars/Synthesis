@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.dp
 import jez.synthesis.audiotrack.Oscillator
 import jez.synthesis.features.createinstrument.CreateInstrumentVM.Event
 import jez.synthesis.rememberEventConsumer
-import timber.log.Timber
 
 @Composable
 fun CreateInstrumentScreen(viewModel: CreateInstrumentVM) {
@@ -336,7 +335,6 @@ fun Visualizer(
         val path = Path().apply {
             moveTo(0f, size.height - (pathPoints.first().toFloat() * yFactor + size.height / 2f))
             pathPoints.forEachIndexed { index, y ->
-                Timber.i("$y")
                 lineTo(
                     index.toFloat() * xFactor,
                     size.height - (y.toFloat() * yFactor + size.height / 2f)

@@ -3,6 +3,7 @@ package jez.synthesis.features.createinstrument
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bumble.appyx.navmodel.backstack.BackStack
 import jez.synthesis.Consumer
 import jez.synthesis.audio.SynthInstrumentData
 import jez.synthesis.audiotrack.AudioGenerator
@@ -13,6 +14,7 @@ import jez.synthesis.audiotrack.Oscillator.WaveformParams
 import jez.synthesis.audiotrack.Sampler
 import jez.synthesis.features.createinstrument.CreateInstrumentVM.Event
 import jez.synthesis.features.createinstrument.CreateInstrumentViewState.InstrumentAttribute
+import jez.synthesis.navigation.NavTarget
 import jez.synthesis.persistence.Repository
 import jez.synthesis.toViewState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +24,7 @@ import java.util.*
 
 class CreateInstrumentVM(
     private val repository: Repository,
+    private val backStack: BackStack<NavTarget>,
     existingId: String?,
 ) : Consumer<Event>, ViewModel() {
     private val stateFlow = MutableStateFlow(
@@ -45,7 +48,7 @@ class CreateInstrumentVM(
     val viewState: StateFlow<CreateInstrumentViewState> =
         stateFlow.toViewState(viewModelScope) { CreateInstrumentStateToViewState(it) }
 
-    private val audioGenerator = AudioGenerator(41000)
+    private val audioGenerator = AudioGenerator(41000).apply { createPlayer(1) }
 
     init {
         viewModelScope.launch {
@@ -148,6 +151,7 @@ class CreateInstrumentVM(
     private fun State.toSampler() =
         Sampler(
             id = samplerId,
+            name = data.name,
             sampleRate = sampleRate,
             oscillators = data.oscillators
         )
@@ -210,6 +214,7 @@ object CreateInstrumentStateToViewState : (CreateInstrumentVM.State) -> CreateIn
         with(state.data) {
             val sampler = Sampler(
                 id = "demo",
+                name = "",
                 sampleRate = 500,
                 oscillators = state.data.oscillators,
             )

@@ -4,6 +4,7 @@ import kotlin.math.roundToInt
 
 data class Sampler(
     val id: String,
+    val name: String,
     val sampleRate: Int,
     val oscillators: List<Oscillator>,
 ) {
