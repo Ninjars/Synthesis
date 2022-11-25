@@ -14,13 +14,16 @@ import jez.synthesis.audiotrack.Oscillator.WaveformParams
 import jez.synthesis.audiotrack.Sampler
 import jez.synthesis.features.createinstrument.CreateInstrumentVM.Event
 import jez.synthesis.features.createinstrument.CreateInstrumentViewState.InstrumentAttribute
+import jez.synthesis.persistence.Repository
 import jez.synthesis.toViewState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.*
 
-class CreateInstrumentVM : Consumer<Event>, ViewModel() {
+class CreateInstrumentVM(
+    private val repository: Repository,
+) : Consumer<Event>, ViewModel() {
     private val stateFlow = MutableStateFlow(
         State(
             sampleRate = 22000,
@@ -47,7 +50,9 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
     val instrument = Instrument(audioGenerator, 1)
 
     init {
-        updateInstrument(stateFlow.value)
+        viewModelScope.launch {
+            updateInstrument(stateFlow.value)
+        }
     }
 
     override fun accept(value: Event) {
@@ -132,12 +137,13 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
             )
         )
 
-    private fun updateInstrument(state: State) {
+    private suspend fun updateInstrument(state: State) {
         val sampler = Sampler(
             id = state.samplerId,
             sampleRate = state.sampleRate,
             oscillators = state.data.oscillators
         )
+        repository.storeSampler(sampler)
         instrument.sampler = sampler
     }
 
