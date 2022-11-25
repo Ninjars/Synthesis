@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
@@ -83,6 +84,13 @@ fun SequencerContent(
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = "Create new Sampler"
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = { eventHandler(Event.Reset) }) {
+                    Icon(
+                        imageVector = Icons.Filled.Refresh,
+                        contentDescription = "Reset"
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))

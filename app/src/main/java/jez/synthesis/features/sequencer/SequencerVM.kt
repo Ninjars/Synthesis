@@ -110,8 +110,11 @@ class SequencerVM(
             )
             is Event.SetIsPlaying -> state.copy(isPlaying = event.isPlaying)
             is Event.SelectedSampler -> state.copy(sampler = state.samplers[event.index])
-            is Event.EditSampler -> state.also { backStack.push(NavTarget.Instrument(state.sampler?.id)) }
-            is Event.CreateNewSampler -> state.also { backStack.push(NavTarget.Instrument(null)) }
+            is Event.EditSampler -> state.copy(isPlaying = false)
+                .also { backStack.push(NavTarget.Instrument(state.sampler?.id)) }
+            is Event.CreateNewSampler -> state.copy(isPlaying = false)
+                .also { backStack.push(NavTarget.Instrument(null)) }
+            is Event.Reset -> state.copy(isPlaying = false, input = emptyList())
         }
 
     data class State(
@@ -134,6 +137,7 @@ class SequencerVM(
         data class SelectedSampler(val index: Int) : Event()
         object EditSampler : Event()
         object CreateNewSampler : Event()
+        object Reset : Event()
     }
 }
 
