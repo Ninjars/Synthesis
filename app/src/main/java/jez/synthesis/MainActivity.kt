@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
-import jez.synthesis.features.createinstrument.CreateInstrumentScreen
-import jez.synthesis.features.createinstrument.CreateInstrumentVM
+import jez.synthesis.features.sequencer.SequencerScreen
+import jez.synthesis.features.sequencer.SequencerVM
 import jez.synthesis.persistence.InMemoryRepository
 import jez.synthesis.ui.theme.SynthesisTheme
 
@@ -23,7 +23,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    CreateInstrumentScreen(CreateInstrumentVM(repository))
+//                    CreateInstrumentScreen(CreateInstrumentVM(repository))
+                    SequencerScreen(SequencerVM(repository))
                 }
             }
         }
