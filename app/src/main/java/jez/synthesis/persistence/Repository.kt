@@ -17,7 +17,7 @@ class InMemoryRepository : Repository {
     private val samplers = MutableStateFlow(HashMap<String, Sampler>())
 
     override suspend fun storeSampler(sampler: Sampler) {
-        samplers.value = samplers.value.apply { this[sampler.id] }
+        samplers.value = samplers.value.apply { this[sampler.id] = sampler }
     }
 
     override suspend fun getSampler(id: String): Sampler? = samplers.value[id]
