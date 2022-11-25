@@ -22,6 +22,7 @@ import java.util.*
 
 class CreateInstrumentVM(
     private val repository: Repository,
+    existingId: String?,
 ) : Consumer<Event>, ViewModel() {
     private val stateFlow = MutableStateFlow(
         State(
@@ -38,7 +39,6 @@ class CreateInstrumentVM(
                         )
                     )
                 ),
-                processors = emptyList(),
             )
         )
     )
@@ -49,7 +49,14 @@ class CreateInstrumentVM(
 
     init {
         viewModelScope.launch {
-            repository.storeSampler(stateFlow.value.toSampler())
+            val existingSampler = existingId?.let {
+                repository.getSampler(it)
+            }
+            if (existingSampler != null) {
+                accept(Event.LoadedSampler(existingSampler))
+            } else {
+                repository.storeSampler(stateFlow.value.toSampler())
+            }
         }
     }
 
@@ -66,12 +73,6 @@ class CreateInstrumentVM(
                 audioGenerator.writeSound(it.toSampler().sample(1f, Note.A.frequency(3)))
             }
             is Event.UpdateName -> state.copy(data = state.data.copy(name = event.value))
-            is Event.UpdateFade -> state.copy(
-                data = state.data.copy(
-                    fade = event.value,
-                    fadeEnabled = event.enabled
-                )
-            )
             is Event.ReorderWaveforms -> state.copy(
                 data = state.data.copy(
                     oscillators = state.data.oscillators.map {
@@ -122,6 +123,13 @@ class CreateInstrumentVM(
                     }
                 )
             }
+            is Event.LoadedSampler -> with(event.sampler) {
+                state.copy(
+                    samplerId = id,
+                    sampleRate = sampleRate,
+                    data = state.data.copy(oscillators = oscillators)
+                )
+            }
         }
 
     private fun State.updateOscillator(id: String, block: (Oscillator) -> Oscillator) =
@@ -153,13 +161,13 @@ class CreateInstrumentVM(
 
     sealed class Event {
         object Play : Event()
+        data class LoadedSampler(val sampler: Sampler) : Event()
         data class UpdateName(val value: String) : Event()
 
         //        data class UpdateAttack(val value: Float, val enabled: Boolean) : Event()
 //        data class UpdateSustain(val value: Float, val enabled: Boolean) : Event()
 //        data class UpdateRelease(val value: Float, val enabled: Boolean) : Event()
 //        data class UpdateDecay(val value: Float, val enabled: Boolean) : Event()
-        data class UpdateFade(val value: Float, val enabled: Boolean) : Event()
         data class ReorderWaveforms(val oscillatorId: String, val from: Int, val to: Int) : Event()
         data class DeleteOscillator(val oscillatorId: String) : Event()
         object AddOscillator : Event()
