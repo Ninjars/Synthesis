@@ -22,8 +22,8 @@ enum class Note(private val stepsFromA: Int) {
      *
      * -4 is applied to the octave as middle A is the fourth octave
      */
-    fun frequency(octave: Int): Double =
-        A4 * PitchConstant.pow(StepsPerOctave * (octave - 4) + stepsFromA)
+    fun frequency(octave: Int, additionalSteps: Int = 0): Double =
+        A4 * PitchConstant.pow(StepsPerOctave * (octave - 4) + stepsFromA + additionalSteps)
 
     companion object {
         private const val StepsPerOctave = 12

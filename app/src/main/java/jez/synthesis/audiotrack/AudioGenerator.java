@@ -22,7 +22,7 @@ public class AudioGenerator {
         this.sampleRate = sampleRate;
     }
 
-    private byte[] get16BitPcm(double[] samples) {
+    static byte[] get16BitPcm(double[] samples) {
         byte[] generatedSound = new byte[2 * samples.length];
         int index = 0;
         for (double sample : samples) {

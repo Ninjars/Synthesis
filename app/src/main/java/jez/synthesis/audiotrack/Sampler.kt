@@ -15,6 +15,13 @@ data class Sampler(
         frequency: Double,
     ): DoubleArray {
         val sampleCount = (duration * sampleRate).roundToInt()
+        return sample(sampleCount, frequency)
+    }
+
+    fun sample(
+        sampleCount: Int,
+        frequency: Double,
+    ): DoubleArray {
         return if (oscillators.isEmpty())
             DoubleArray(0)
         else
