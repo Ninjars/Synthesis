@@ -177,7 +177,6 @@ class CreateInstrumentVM : Consumer<Event>, ViewModel() {
             }
         )
         instrument.sampler = sampler
-        instrument.fade = if (state.data.fadeEnabled) state.data.fade.toDouble() else 1.0
     }
 
     data class State(
@@ -219,9 +218,9 @@ data class CreateInstrumentViewState(
 //    val sustain: InstrumentAttribute,
 //    val release: InstrumentAttribute,
 //    val decay: InstrumentAttribute,
-    val fade: InstrumentAttribute,
+//    val fade: InstrumentAttribute,
     val oscillators: List<OscillatorParams>,
-    val visualisedWaveform: DoubleArray,
+    val visualisedWaveform: List<Double>,
 ) {
     data class InstrumentAttribute(
         val textValue: String = "/",
@@ -241,7 +240,7 @@ object CreateInstrumentStateToViewState : (CreateInstrumentVM.State) -> CreateIn
                     Oscillator(params = it)
                 }
             )
-            val samples = sampler.sample(1f, 10.0, state.data.fade.toDouble())
+            val samples = sampler.sample(1f, 10.0)
 
 
             CreateInstrumentViewState(
@@ -251,9 +250,9 @@ object CreateInstrumentStateToViewState : (CreateInstrumentVM.State) -> CreateIn
 //                sustain = sustainLevel.toAttribute(AudioEngine.MinSustainLevel, sustainEnabled),
 //                release = releaseTime.toAttribute(AudioEngine.MinReleaseTime, releaseEnabled),
 //                decay = decayTime.toAttribute(AudioEngine.MinDecayTime, decayEnabled),
-                fade = fade.toAttribute(0f, 10f, fadeEnabled),
+//                fade = fade.toAttribute(0f, 10f, fadeEnabled),
                 oscillators = oscillators,
-                visualisedWaveform = samples,
+                visualisedWaveform = samples.toList(),
             )
         }
 

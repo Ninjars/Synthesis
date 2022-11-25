@@ -82,18 +82,18 @@ fun CreateInstrumentContent(
         ) {
             Name(eventHandler) { state.value.name }
             Visualizer { state.value.visualisedWaveform }
-            AttributeController(
-                "Fade",
-                updateHandler = { value, enabled ->
-                    eventHandler(
-                        Event.UpdateFade(
-                            value = value,
-                            enabled = enabled
-                        )
-                    )
-                },
-                attributeProvider = { state.value.fade }
-            )
+//            AttributeController(
+//                "Fade",
+//                updateHandler = { value, enabled ->
+//                    eventHandler(
+//                        Event.UpdateFade(
+//                            value = value,
+//                            enabled = enabled
+//                        )
+//                    )
+//                },
+//                attributeProvider = { state.value.fade }
+//            )
 //            AttributeController(
 //                "Sustain",
 //                updateHandler = { value, enabled ->
@@ -324,7 +324,7 @@ private fun Waveforms(
                         Text(text = "Mult")
                         Slider(
                             value = item.multiplier.toFloat(),
-                            valueRange = 0.1f..5f,
+                            valueRange = 0.01f..2f,
                             onValueChange = {
                                 eventHandler(
                                     Event.UpdateWaveform(
@@ -346,7 +346,7 @@ private fun Waveforms(
                         Text(text = "Fade")
                         Slider(
                             value = item.backoff.toFloat(),
-                            valueRange = 0.5f..10f,
+                            valueRange = 0f..10f,
                             onValueChange = {
                                 eventHandler(
                                     Event.UpdateWaveform(
@@ -418,7 +418,7 @@ private fun WaveformSelector(
 
 @Composable
 fun Visualizer(
-    pathPointsProvider: () -> DoubleArray
+    pathPointsProvider: () -> List<Double>
 ) {
     val lineColor = MaterialTheme.colors.primary
     Canvas(

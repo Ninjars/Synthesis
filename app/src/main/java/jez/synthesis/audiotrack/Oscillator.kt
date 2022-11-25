@@ -15,7 +15,7 @@ data class OscillatorParams(
     data class WaveformParams(
         val waveform: Waveform = Waveform.SINE,
         val multiplier: Double = 1.0,
-        val backoff: Double = 0.0,
+        val backoff: Double = 1.0,
         val id: String = UUID.randomUUID().toString(),
     )
 

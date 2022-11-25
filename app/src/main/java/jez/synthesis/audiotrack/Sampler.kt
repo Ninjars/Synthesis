@@ -1,6 +1,5 @@
 package jez.synthesis.audiotrack
 
-import kotlin.math.exp
 import kotlin.math.roundToInt
 
 data class Sampler(
@@ -13,7 +12,6 @@ data class Sampler(
     fun sample(
         duration: Float,
         frequency: Double,
-        fade: Double,
     ): DoubleArray {
         val sampleCount = (duration * sampleRate).roundToInt()
         return if (oscillators.isEmpty())
@@ -22,13 +20,12 @@ data class Sampler(
             oscillators.map { it.sample(sampleRate, sampleCount, frequency) }.reduce { a, b ->
                 a.zip(b) { c, d -> c + d }
             }.mapIndexed { index, value ->
-                val t = index / (sampleCount - 1).toDouble()
                 val attackPopFactor =
                     lerpClamped(0.0, 1.0, (index / attackPopSamples).coerceIn(0.0, 1.0))
                 val decayPopStart = sampleCount - 1 - decayPopSamples
                 val decayPopFactor =
                     lerpClamped(1.0, 0.0, ((index - decayPopStart) / decayPopSamples))
-                value / (oscillators.size).toDouble() * exp(-t * fade) * attackPopFactor * decayPopFactor
+                value / (oscillators.size).toDouble() * attackPopFactor * decayPopFactor
             }.toDoubleArray()
     }
 
