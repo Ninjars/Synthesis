@@ -3,26 +3,29 @@
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
 # Sets the minimum version of CMake required to build the native library.
-
 cmake_minimum_required(VERSION 3.18.1)
 
 # Declares and names the project.
-
 project("synthesis")
+
+# include sub-directories
+include_directories(/utils)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
-
-add_library( # Sets the name of the library.
+add_library(
+        # Sets the name of the library.
         synthesis
 
         # Sets the library as a shared library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        synthesis.cpp)
+        synthesis.cpp
+        SynthesisEngine.cpp
+)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -30,12 +33,14 @@ add_library( # Sets the name of the library.
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-find_library( # Sets the name of the path variable.
+find_library(
+        # Sets the name of the path variable.
         log-lib
 
         # Specifies the name of the NDK library that
         # you want CMake to locate.
-        log)
+        log
+)
 
 # Find the Oboe package
 find_package(oboe REQUIRED CONFIG)
@@ -53,7 +58,7 @@ target_link_libraries(
         oboe::oboe
 )
 
-## Enable optimization flags: if having problems with source level debugging,
-## disable -Ofast ( and debug ), re-enable it after done debugging.
-#target_compile_options(synthesis PRIVATE -Wall -Werror -Ofast)
+# Enable optimization flags: if having problems with source level debugging,
+# disable -Ofast ( and debug ), re-enable it after done debugging.
+target_compile_options(synthesis PRIVATE -Wall -Werror -Ofast)
 
