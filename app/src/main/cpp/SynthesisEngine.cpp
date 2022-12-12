@@ -66,8 +66,8 @@ oboe::Result SynthesisEngine::createPlaybackStream() {
     return builder.setSharingMode(oboe::SharingMode::Exclusive)
             ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
             ->setFormat(oboe::AudioFormat::Float)
-            ->setDataCallback(mDataCallback.get())
-            ->setErrorCallback(mErrorCallback.get())
+            ->setDataCallback(mDataCallback)
+            ->setErrorCallback(mErrorCallback)
             ->openStream(mStream);
 }
 

@@ -9,7 +9,18 @@ cmake_minimum_required(VERSION 3.18.1)
 project("synthesis")
 
 # include sub-directories
-include_directories(/utils)
+set(OBOE_DIR ./oboe)
+
+# Add the Oboe library as a subdirectory in your project.
+# add_subdirectory tells CMake to look in this directory to
+# compile oboe source files using oboe's CMake file.
+# ./oboe specifies where the compiled binaries will be stored
+add_subdirectory(${OBOE_DIR} ./oboe)
+
+# Specify the path to the Oboe header files.
+# This allows targets compiled with this CMake (application code)
+# to see public Oboe headers, in order to access its API.
+include_directories(${OBOE_DIR}/include)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -42,9 +53,6 @@ find_library(
         log
 )
 
-# Find the Oboe package
-find_package(oboe REQUIRED CONFIG)
-
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
@@ -55,7 +63,7 @@ target_link_libraries(
         # Links the target library to the log library included in the NDK.
         ${log-lib}
         # Links Oboe
-        oboe::oboe
+        oboe
 )
 
 # Enable optimization flags: if having problems with source level debugging,
