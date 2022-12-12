@@ -156,7 +156,7 @@ data class SequencerViewState(
     )
 }
 
-object SequencerStateToViewState : (SequencerVM.State) -> SequencerViewState {
+private object SequencerStateToViewState : (SequencerVM.State) -> SequencerViewState {
     override fun invoke(state: SequencerVM.State): SequencerViewState =
         SequencerViewState(
             isPlaying = state.isPlaying,

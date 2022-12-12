@@ -1,4 +1,4 @@
-package jez.synthesis.features.sequencer
+package jez.synthesis.features.sequencer2
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,11 +41,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import jez.synthesis.features.sequencer.SequencerVM.Event
+import jez.synthesis.features.sequencer2.Sequencer2VM.Event
 import jez.synthesis.rememberEventConsumer
 
 @Composable
-fun SequencerScreen(viewModel: SequencerVM) {
+fun Sequencer2Screen(viewModel: Sequencer2VM) {
     SequencerContent(
         viewModel.viewState.collectAsState(),
         rememberEventConsumer(viewModel)
@@ -54,7 +54,7 @@ fun SequencerScreen(viewModel: SequencerVM) {
 
 @Composable
 private fun SequencerContent(
-    state: State<SequencerViewState>,
+    state: State<Sequencer2ViewState>,
     eventHandler: (Event) -> Unit,
 ) {
     Box {
@@ -66,12 +66,12 @@ private fun SequencerContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SequencerSelector(
-                    modifier = Modifier.weight(1f),
-                    selectedIndexProvider = { state.value.sequencerIndex },
-                    optionsProvider = { state.value.sequencerNames },
-                    eventHandler = { eventHandler(Event.SelectedSampler(it)) },
-                )
+//                SequencerSelector(
+//                    modifier = Modifier.weight(1f),
+//                    selectedIndexProvider = { state.value.sequencerIndex },
+//                    optionsProvider = { state.value.sequencerNames },
+//                    eventHandler = { eventHandler(Event.SelectedSampler(it)) },
+//                )
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(onClick = { eventHandler(Event.EditSampler) }) {
                     Icon(
@@ -175,7 +175,7 @@ private fun BoxScope.PlayPauseButton(
 @Composable
 fun NoteGrid(
     eventHandler: (Event) -> Unit,
-    gridProvider: () -> SequencerViewState.Grid,
+    gridProvider: () -> Sequencer2ViewState.Grid,
 ) {
     val grid = gridProvider()
     val selected = grid.selected

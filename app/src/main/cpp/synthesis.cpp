@@ -32,7 +32,7 @@ extern "C" {
  * @return a pointer to the audio engine. This should be passed to other methods
  */
 JNIEXPORT jlong JNICALL
-Java_com_google_oboe_samples_soundboard_MainActivity_startEngine(
+Java_jez_synthesis_features_sequencer2_Sequencer2VM_00024Companion_startEngine(
         JNIEnv *env,
         jobject /*unused*/,
         jint jNumSignals) {

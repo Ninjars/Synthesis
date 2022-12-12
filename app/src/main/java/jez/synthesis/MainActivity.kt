@@ -35,4 +35,10 @@ class MainActivity : NodeComponentActivity() {
             }
         }
     }
+
+    private companion object {
+        init {
+            System.loadLibrary("synthesis")
+        }
+    }
 }
